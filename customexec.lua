@@ -1,7 +1,7 @@
 --// Admin Panel Script
 --// Uses a custom UI library
 
-local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Joystickplays/psychic-octo-invention/main/yarhm.lua"))()
+local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Spectre-SX/specexec/blob/priv/lib.lua"))()
 
 local AdminPanel = UI:CreateWindow({
     Title = "Admin Panel",
