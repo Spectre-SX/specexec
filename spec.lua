@@ -1,132 +1,134 @@
---// SPEC UI (Based on Wisl'i Universal Project)
---// Developers: aviationSpectre & enes
+--// Custom UI Script based on Wisl'i Universal Project
+--// UI with 5 Tabs and 10 Buttons per Tab, each executing its own loadstring
 
-local SPEC_UI = Instance.new("ScreenGui")
-SPEC_UI.Name = "SPEC_UI"
-SPEC_UI.ResetOnSpawn = false
-SPEC_UI.DisplayOrder = 999 -- Ensures it stays above the ESC menu
-SPEC_UI.Parent = game:GetService("CoreGui")
+local GuiService = game:GetService("GuiService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
 
--- Main UI Frame
+--// Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+--// Ensure GUI is over the ESC menu
+GuiService:AddSelectionParent("CustomUI", ScreenGui)
+
+--// Main UI Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 500, 0, 400)
 MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.BorderSizePixel = 2
-MainFrame.Parent = SPEC_UI
+MainFrame.Parent = ScreenGui
 
--- Title Bar
-local TitleBar = Instance.new("TextLabel")
-TitleBar.Size = UDim2.new(1, 0, 0, 40)
-TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-TitleBar.Text = "SPEC Admin Panel"
-TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleBar.TextScaled = true
-TitleBar.Parent = MainFrame
-
--- Tab Selection Bar
-local TabSelection = Instance.new("Frame")
-TabSelection.Size = UDim2.new(1, 0, 0, 40)
-TabSelection.Position = UDim2.new(0, 0, 0, 40)
-TabSelection.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-TabSelection.Parent = MainFrame
-
--- Button Container
-local ButtonContainer = Instance.new("Frame")
-ButtonContainer.Size = UDim2.new(1, 0, 1, -80)
-ButtonContainer.Position = UDim2.new(0, 0, 0, 80)
-ButtonContainer.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-ButtonContainer.Parent = MainFrame
-
--- UI Layouts
-local TabLayout = Instance.new("UIListLayout")
-TabLayout.FillDirection = Enum.FillDirection.Horizontal
-TabLayout.Parent = TabSelection
-
-local ButtonLayout = Instance.new("UIListLayout")
-ButtonLayout.Parent = ButtonContainer
-
--- Define tabs & their buttons
-local Tabs = {
-    Aimbot = {
-        { Name = "Ban Player", Script = "https://raw.githubusercontent.com/YourRepo/Admin/Ban.lua" },
-        { Name = "Kick Player", Script = "https://raw.githubusercontent.com/YourRepo/Admin/Kick.lua" },
-        { Name = "Give Tools", Script = "https://raw.githubusercontent.com/YourRepo/Admin/GiveTools.lua" },
-        { Name = "Freeze Player", Script = "https://raw.githubusercontent.com/YourRepo/Admin/Freeze.lua" },
-        { Name = "Unfreeze Player", Script = "https://raw.githubusercontent.com/YourRepo/Admin/Unfreeze.lua" },
-        { Name = "Force Reset", Script = "https://raw.githubusercontent.com/YourRepo/Admin/ForceReset.lua" },
-        { Name = "Speed Boost", Script = "https://raw.githubusercontent.com/YourRepo/Admin/Speed.lua" },
-        { Name = "God Mode", Script = "https://raw.githubusercontent.com/YourRepo/Admin/GodMode.lua" },
-        { Name = "Invisible", Script = "https://raw.githubusercontent.com/YourRepo/Admin/Invisible.lua" },
-        { Name = "Visible", Script = "https://raw.githubusercontent.com/YourRepo/Admin/Visible.lua" }
-    },
-    Player = {
-        { Name = "Fly Mode", Script = "https://raw.githubusercontent.com/YourRepo/Player/Fly.lua" },
-        { Name = "Noclip", Script = "https://raw.githubusercontent.com/YourRepo/Player/Noclip.lua" },
-        { Name = "Super Jump", Script = "https://raw.githubusercontent.com/YourRepo/Player/SuperJump.lua" },
-        { Name = "ESP", Script = "https://raw.githubusercontent.com/YourRepo/Player/ESP.lua" },
-        { Name = "X-Ray", Script = "https://raw.githubusercontent.com/YourRepo/Player/XRay.lua" },
-        { Name = "Unlock All Skins", Script = "https://raw.githubusercontent.com/YourRepo/Player/UnlockSkins.lua" },
-        { Name = "Infinite Stamina", Script = "https://raw.githubusercontent.com/YourRepo/Player/InfiniteStamina.lua" },
-        { Name = "No Fall Damage", Script = "https://raw.githubusercontent.com/YourRepo/Player/NoFall.lua" },
-        { Name = "Silent Aim", Script = "https://raw.githubusercontent.com/YourRepo/Player/SilentAim.lua" },
-        { Name = "Auto Reload", Script = "https://raw.githubusercontent.com/YourRepo/Player/AutoReload.lua" }
-    },
-    Enhancements = {
-        { Name = "Wallhack", Script = "https://raw.githubusercontent.com/YourRepo/Enhancements/Wallhack.lua" },
-        { Name = "Night Vision", Script = "https://raw.githubusercontent.com/YourRepo/Enhancements/NightVision.lua" },
-        { Name = "Auto Parry", Script = "https://raw.githubusercontent.com/YourRepo/Enhancements/AutoParry.lua" },
-        { Name = "Aimbot", Script = "https://raw.githubusercontent.com/YourRepo/Enhancements/Aimbot.lua" },
-        { Name = "Teleport", Script = "https://raw.githubusercontent.com/YourRepo/Enhancements/Teleport.lua" },
-        { Name = "No Recoil", Script = "https://raw.githubusercontent.com/YourRepo/Enhancements/NoRecoil.lua" },
-        { Name = "Fast Fire", Script = "https://raw.githubusercontent.com/YourRepo/Enhancements/FastFire.lua" },
-        { Name = "Custom Crosshair", Script = "https://raw.githubusercontent.com/YourRepo/Enhancements/Crosshair.lua" },
-        { Name = "Auto Heal", Script = "https://raw.githubusercontent.com/YourRepo/Enhancements/AutoHeal.lua" },
-        { Name = "Radar", Script = "https://raw.githubusercontent.com/YourRepo/Enhancements/Radar.lua" }
-    }
+--// Tab Handling
+local Tabs = {}
+local Buttons = {}
+local Loadstrings = {
+    --// Tab 1 Scripts
+    ["Tab1_Button1"] = "loadstring(game:HttpGet('https://your-url.com/script1.lua'))()",
+    ["Tab1_Button2"] = "loadstring(game:HttpGet('https://your-url.com/script2.lua'))()",
+    ["Tab1_Button3"] = "loadstring(game:HttpGet('https://your-url.com/script3.lua'))()",
+    ["Tab1_Button4"] = "loadstring(game:HttpGet('https://your-url.com/script4.lua'))()",
+    ["Tab1_Button5"] = "loadstring(game:HttpGet('https://your-url.com/script5.lua'))()",
+    ["Tab1_Button6"] = "loadstring(game:HttpGet('https://your-url.com/script6.lua'))()",
+    ["Tab1_Button7"] = "loadstring(game:HttpGet('https://your-url.com/script7.lua'))()",
+    ["Tab1_Button8"] = "loadstring(game:HttpGet('https://your-url.com/script8.lua'))()",
+    ["Tab1_Button9"] = "loadstring(game:HttpGet('https://your-url.com/script9.lua'))()",
+    ["Tab1_Button10"] = "loadstring(game:HttpGet('https://your-url.com/script10.lua'))()",
+        --// Tab 2 Scripts
+    ["Tab1_Button1"] = "loadstring(game:HttpGet('https://your-url.com/script1.lua'))()",
+    ["Tab1_Button2"] = "loadstring(game:HttpGet('https://your-url.com/script2.lua'))()",
+    ["Tab1_Button3"] = "loadstring(game:HttpGet('https://your-url.com/script3.lua'))()",
+    ["Tab1_Button4"] = "loadstring(game:HttpGet('https://your-url.com/script4.lua'))()",
+    ["Tab1_Button5"] = "loadstring(game:HttpGet('https://your-url.com/script5.lua'))()",
+    ["Tab1_Button6"] = "loadstring(game:HttpGet('https://your-url.com/script6.lua'))()",
+    ["Tab1_Button7"] = "loadstring(game:HttpGet('https://your-url.com/script7.lua'))()",
+    ["Tab1_Button8"] = "loadstring(game:HttpGet('https://your-url.com/script8.lua'))()",
+    ["Tab1_Button9"] = "loadstring(game:HttpGet('https://your-url.com/script9.lua'))()",
+    ["Tab1_Button10"] = "loadstring(game:HttpGet('https://your-url.com/script10.lua'))()",
+        --// Tab 3 Scripts
+    ["Tab1_Button1"] = "loadstring(game:HttpGet('https://your-url.com/script1.lua'))()",
+    ["Tab1_Button2"] = "loadstring(game:HttpGet('https://your-url.com/script2.lua'))()",
+    ["Tab1_Button3"] = "loadstring(game:HttpGet('https://your-url.com/script3.lua'))()",
+    ["Tab1_Button4"] = "loadstring(game:HttpGet('https://your-url.com/script4.lua'))()",
+    ["Tab1_Button5"] = "loadstring(game:HttpGet('https://your-url.com/script5.lua'))()",
+    ["Tab1_Button6"] = "loadstring(game:HttpGet('https://your-url.com/script6.lua'))()",
+    ["Tab1_Button7"] = "loadstring(game:HttpGet('https://your-url.com/script7.lua'))()",
+    ["Tab1_Button8"] = "loadstring(game:HttpGet('https://your-url.com/script8.lua'))()",
+    ["Tab1_Button9"] = "loadstring(game:HttpGet('https://your-url.com/script9.lua'))()",
+    ["Tab1_Button10"] = "loadstring(game:HttpGet('https://your-url.com/script10.lua'))()",
+        --// Tab 4 Scripts
+    ["Tab1_Button1"] = "loadstring(game:HttpGet('https://your-url.com/script1.lua'))()",
+    ["Tab1_Button2"] = "loadstring(game:HttpGet('https://your-url.com/script2.lua'))()",
+    ["Tab1_Button3"] = "loadstring(game:HttpGet('https://your-url.com/script3.lua'))()",
+    ["Tab1_Button4"] = "loadstring(game:HttpGet('https://your-url.com/script4.lua'))()",
+    ["Tab1_Button5"] = "loadstring(game:HttpGet('https://your-url.com/script5.lua'))()",
+    ["Tab1_Button6"] = "loadstring(game:HttpGet('https://your-url.com/script6.lua'))()",
+    ["Tab1_Button7"] = "loadstring(game:HttpGet('https://your-url.com/script7.lua'))()",
+    ["Tab1_Button8"] = "loadstring(game:HttpGet('https://your-url.com/script8.lua'))()",
+    ["Tab1_Button9"] = "loadstring(game:HttpGet('https://your-url.com/script9.lua'))()",
+    ["Tab1_Button10"] = "loadstring(game:HttpGet('https://your-url.com/script10.lua'))()",
+        --// Tab 5 Scripts
+    ["Tab1_Button1"] = "loadstring(game:HttpGet('https://your-url.com/script1.lua'))()",
+    ["Tab1_Button2"] = "loadstring(game:HttpGet('https://your-url.com/script2.lua'))()",
+    ["Tab1_Button3"] = "loadstring(game:HttpGet('https://your-url.com/script3.lua'))()",
+    ["Tab1_Button4"] = "loadstring(game:HttpGet('https://your-url.com/script4.lua'))()",
+    ["Tab1_Button5"] = "loadstring(game:HttpGet('https://your-url.com/script5.lua'))()",
+    ["Tab1_Button6"] = "loadstring(game:HttpGet('https://your-url.com/script6.lua'))()",
+    ["Tab1_Button7"] = "loadstring(game:HttpGet('https://your-url.com/script7.lua'))()",
+    ["Tab1_Button8"] = "loadstring(game:HttpGet('https://your-url.com/script8.lua'))()",
+    ["Tab1_Button9"] = "loadstring(game:HttpGet('https://your-url.com/script9.lua'))()",
+    ["Tab1_Button10"] = "loadstring(game:HttpGet('https://your-url.com/script10.lua'))()",
 }
 
--- Active Tab
-local ActiveTab = nil
-
--- Create Tabs
-local function CreateTab(Name, Buttons)
-    local TabButton = Instance.new("TextButton")
-    TabButton.Size = UDim2.new(0.2, 0, 1, 0)
-    TabButton.Text = Name
-    TabButton.TextScaled = true
-    TabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TabButton.Parent = TabSelection
-
-    TabButton.MouseButton1Click:Connect(function()
-        -- Clear old buttons
-        for _, v in pairs(ButtonContainer:GetChildren()) do
-            if v:IsA("TextButton") then
-                v:Destroy()
-            end
-        end
-
-        -- Add buttons for the tab
-        for _, button in ipairs(Buttons) do
-            local Btn = Instance.new("TextButton")
-            Btn.Size = UDim2.new(1, 0, 0, 40)
-            Btn.Text = button.Name
-            Btn.TextScaled = true
-            Btn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-            Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Btn.Parent = ButtonContainer
-
-            Btn.MouseButton1Click:Connect(function()
-                loadstring(game:HttpGet(button.Script))()
-            end)
-        end
-    end)
-
-    return TabButton
+--// Function to create tabs
+local function CreateTab(name)
+    local Tab = Instance.new("TextButton")
+    Tab.Size = UDim2.new(0, 100, 0, 30)
+    Tab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Tab.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Tab.Text = name
+    Tab.Parent = MainFrame
+    
+    Tabs[name] = Tab
+    
+    return Tab
 end
 
--- Generate Tabs
-for tabName, buttons in pairs(Tabs) do
-    CreateTab(tabName, buttons)
+--// Function to create buttons
+local function CreateButton(tabName, buttonName, isToggle)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0, 150, 0, 30)
+    Button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.Text = buttonName
+    Button.Parent = MainFrame
+    
+    local toggled = false
+    Button.MouseButton1Click:Connect(function()
+        if isToggle then
+            toggled = not toggled
+            if toggled then
+                loadstring(Loadstrings[tabName .. "_" .. buttonName])()
+            end
+        else
+            loadstring(Loadstrings[tabName .. "_" .. buttonName])()
+        end
+    end)
+    
+    Buttons[tabName .. "_" .. buttonName] = Button
+    
+    return Button
+end
+
+--// Create Tabs
+for i = 1, 5 do
+    local tabName = "Tab" .. i
+    CreateTab(tabName)
+    
+    --// Create Buttons for each Tab
+    for j = 1, 10 do
+        CreateButton(tabName, "Button" .. j, false) -- Change false to true if you want it to be a toggle
+    end
 end
