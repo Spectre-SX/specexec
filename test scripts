@@ -1,0 +1,78 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Camera = game.Workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+-- CONFIGURATION
+local AIMBOT_ENABLED = true -- Toggle aimbot
+local AIM_SMOOTHNESS = 0.5  -- Range: 0 (Instant Lock) to 1 (Fully Smooth)
+local AIM_FOV = 100         -- Field of View (Increase for larger aim range)
+local AIM_KEY = Enum.UserInputType.MouseButton2 -- Right Click to aim
+
+-- UI for FOV circle (optional)
+local FOV_Circle = Drawing.new("Circle")
+FOV_Circle.Radius = AIM_FOV
+FOV_Circle.Thickness = 2
+FOV_Circle.Filled = false
+FOV_Circle.Transparency = 1
+FOV_Circle.Color = Color3.fromRGB(255, 0, 0)
+FOV_Circle.Visible = true
+
+-- Function to find the closest player within the FOV
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = AIM_FOV
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local head = player.Character:FindFirstChild("Head")
+            if head then
+                local headPosition, onScreen = Camera:WorldToViewportPoint(head.Position)
+
+                if onScreen then
+                    local mouseDistance = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(headPosition.X, headPosition.Y)).Magnitude
+
+                    if mouseDistance < shortestDistance then
+                        closestPlayer = head
+                        shortestDistance = mouseDistance
+                    end
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+-- Aimbot function (smooth or instant)
+local function aimAt(target)
+    if target then
+        local targetPosition = Camera:WorldToViewportPoint(target.Position)
+        local mousePosition = Vector2.new(Mouse.X, Mouse.Y)
+
+        -- Adjust smoothness range (0 = instant, 1 = very smooth)
+        local smoothFactor = math.clamp(AIM_SMOOTHNESS, 0, 1)
+
+        if smoothFactor == 0 then
+            -- Instant Lock
+            mousemoverel(targetPosition.X - mousePosition.X, targetPosition.Y - mousePosition.Y)
+        else
+            -- Smooth aim
+            local newMousePosition = mousePosition:Lerp(Vector2.new(targetPosition.X, targetPosition.Y), smoothFactor)
+            mousemoverel(newMousePosition.X - mousePosition.X, newMousePosition.Y - mousePosition.Y)
+        end
+    end
+end
+
+-- Main loop
+RunService.RenderStepped:Connect(function()
+    FOV_Circle.Position = Vector2.new(Mouse.X, Mouse.Y)
+
+    if AIMBOT_ENABLED and UserInputService:IsMouseButtonPressed(AIM_KEY) then
+        local target = getClosestPlayer()
+        aimAt(target)
+    end
+end)
+
