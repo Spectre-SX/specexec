@@ -1,78 +1,59 @@
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local Camera = game.Workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
+local flying = false
+local speed = 50
+local hoverHeight = 5
+local bodyVelocity
 
--- CONFIGURATION
-local AIMBOT_ENABLED = true -- Toggle aimbot
-local AIM_SMOOTHNESS = 0.5  -- Range: 0 (Instant Lock) to 1 (Fully Smooth)
-local AIM_FOV = 100         -- Field of View (Increase for larger aim range)
-local AIM_KEY = Enum.UserInputType.MouseButton2 -- Right Click to aim
+local function startFlying()
+    flying = true
+    local character = game.Players.LocalPlayer.Character
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
--- UI for FOV circle (optional)
-local FOV_Circle = Drawing.new("Circle")
-FOV_Circle.Radius = AIM_FOV
-FOV_Circle.Thickness = 2
-FOV_Circle.Filled = false
-FOV_Circle.Transparency = 1
-FOV_Circle.Color = Color3.fromRGB(255, 0, 0)
-FOV_Circle.Visible = true
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+    bodyVelocity.Parent = humanoidRootPart
 
--- Function to find the closest player within the FOV
-local function getClosestPlayer()
-    local closestPlayer = nil
-    local shortestDistance = AIM_FOV
+    -- Update velocity to keep flying and hovering
+    while flying do
+        -- Get the current camera direction for moving
+        local moveDirection = game:GetService("Workspace").CurrentCamera.CFrame.LookVector
+        local moveInput = Vector3.new(0, 0, 0)
 
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            local head = player.Character:FindFirstChild("Head")
-            if head then
-                local headPosition, onScreen = Camera:WorldToViewportPoint(head.Position)
-
-                if onScreen then
-                    local mouseDistance = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(headPosition.X, headPosition.Y)).Magnitude
-
-                    if mouseDistance < shortestDistance then
-                        closestPlayer = head
-                        shortestDistance = mouseDistance
-                    end
-                end
-            end
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.W) then
+            moveInput = moveDirection
+        elseif game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.A) then
+            moveInput = moveDirection * Vector3.new(-1, 0, 0)
+        elseif game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.S) then
+            moveInput = moveDirection * Vector3.new(1, 0, 0)
+        elseif game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.D) then
+            moveInput = moveDirection * Vector3.new(0, 0, 1)
         end
-    end
-
-    return closestPlayer
-end
-
--- Aimbot function (smooth or instant)
-local function aimAt(target)
-    if target then
-        local targetPosition = Camera:WorldToViewportPoint(target.Position)
-        local mousePosition = Vector2.new(Mouse.X, Mouse.Y)
-
-        -- Adjust smoothness range (0 = instant, 1 = very smooth)
-        local smoothFactor = math.clamp(AIM_SMOOTHNESS, 0, 1)
-
-        if smoothFactor == 0 then
-            -- Instant Lock
-            mousemoverel(targetPosition.X - mousePosition.X, targetPosition.Y - mousePosition.Y)
+        
+        -- Adjust vertical movement to hover when no keys are pressed
+        if moveInput.Magnitude == 0 then
+            moveInput = Vector3.new(0, hoverHeight, 0)  -- Hover upwards with the given height
         else
-            -- Smooth aim
-            local newMousePosition = mousePosition:Lerp(Vector2.new(targetPosition.X, targetPosition.Y), smoothFactor)
-            mousemoverel(newMousePosition.X - mousePosition.X, newMousePosition.Y - mousePosition.Y)
+            moveInput = moveInput + Vector3.new(0, hoverHeight, 0)  -- Include hover height for vertical movement
         end
+
+        bodyVelocity.Velocity = moveInput * speed
+        wait(0.1)
     end
+    bodyVelocity:Destroy()
 end
 
--- Main loop
-RunService.RenderStepped:Connect(function()
-    FOV_Circle.Position = Vector2.new(Mouse.X, Mouse.Y)
+local function stopFlying()
+    flying = false
+end
 
-    if AIMBOT_ENABLED and UserInputService:IsMouseButtonPressed(AIM_KEY) then
-        local target = getClosestPlayer()
-        aimAt(target)
+-- Toggle fly mode with key (e.g., "F")
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    if input.KeyCode == Enum.KeyCode.F then
+        if flying then
+            stopFlying()
+        else
+            startFlying()
+        end
     end
 end)
-
