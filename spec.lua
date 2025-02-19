@@ -1,134 +1,120 @@
---// Custom UI Script based on Wisl'i Universal Project
---// UI with 5 Tabs and 10 Buttons per Tab, each executing its own loadstring
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local GuiService = game:GetService("GuiService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local CoreGui = game:GetService("CoreGui")
+local playername = game.Players.LocalPlayer
+local Themepicked = "Default"
+local Window = Rayfield:CreateWindow({
+   Name = "Spectral Nexus",
+   Icon = "atom",
+   LoadingTitle = "Spectral Nexus",
+   LoadingSubtitle = "by Spectre and Enes",
+   Theme = Themepicked,
 
---// Create ScreenGui
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = CoreGui
-ScreenGui.ResetOnSpawn = false
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false,
 
---// Ensure GUI is over the ESC menu
-GuiService:AddSelectionParent("CustomUI", ScreenGui)
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = nil,
+      FileName = "Spectral Nexus"
+   },
 
---// Main UI Frame
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 500, 0, 400)
-MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.Parent = ScreenGui
+   Discord = {
+      Enabled = true,
+      Invite = "noinvitelink",
+      RememberJoins = true
+   },
 
---// Tab Handling
-local Tabs = {}
-local Buttons = {}
-local Loadstrings = {
-    --// Tab 1 Scripts
-    ["Tab1_Button1"] = "loadstring(game:HttpGet('https://your-url.com/script1.lua'))()",
-    ["Tab1_Button2"] = "loadstring(game:HttpGet('https://your-url.com/script2.lua'))()",
-    ["Tab1_Button3"] = "loadstring(game:HttpGet('https://your-url.com/script3.lua'))()",
-    ["Tab1_Button4"] = "loadstring(game:HttpGet('https://your-url.com/script4.lua'))()",
-    ["Tab1_Button5"] = "loadstring(game:HttpGet('https://your-url.com/script5.lua'))()",
-    ["Tab1_Button6"] = "loadstring(game:HttpGet('https://your-url.com/script6.lua'))()",
-    ["Tab1_Button7"] = "loadstring(game:HttpGet('https://your-url.com/script7.lua'))()",
-    ["Tab1_Button8"] = "loadstring(game:HttpGet('https://your-url.com/script8.lua'))()",
-    ["Tab1_Button9"] = "loadstring(game:HttpGet('https://your-url.com/script9.lua'))()",
-    ["Tab1_Button10"] = "loadstring(game:HttpGet('https://your-url.com/script10.lua'))()",
-        --// Tab 2 Scripts
-    ["Tab1_Button1"] = "loadstring(game:HttpGet('https://your-url.com/script1.lua'))()",
-    ["Tab1_Button2"] = "loadstring(game:HttpGet('https://your-url.com/script2.lua'))()",
-    ["Tab1_Button3"] = "loadstring(game:HttpGet('https://your-url.com/script3.lua'))()",
-    ["Tab1_Button4"] = "loadstring(game:HttpGet('https://your-url.com/script4.lua'))()",
-    ["Tab1_Button5"] = "loadstring(game:HttpGet('https://your-url.com/script5.lua'))()",
-    ["Tab1_Button6"] = "loadstring(game:HttpGet('https://your-url.com/script6.lua'))()",
-    ["Tab1_Button7"] = "loadstring(game:HttpGet('https://your-url.com/script7.lua'))()",
-    ["Tab1_Button8"] = "loadstring(game:HttpGet('https://your-url.com/script8.lua'))()",
-    ["Tab1_Button9"] = "loadstring(game:HttpGet('https://your-url.com/script9.lua'))()",
-    ["Tab1_Button10"] = "loadstring(game:HttpGet('https://your-url.com/script10.lua'))()",
-        --// Tab 3 Scripts
-    ["Tab1_Button1"] = "loadstring(game:HttpGet('https://your-url.com/script1.lua'))()",
-    ["Tab1_Button2"] = "loadstring(game:HttpGet('https://your-url.com/script2.lua'))()",
-    ["Tab1_Button3"] = "loadstring(game:HttpGet('https://your-url.com/script3.lua'))()",
-    ["Tab1_Button4"] = "loadstring(game:HttpGet('https://your-url.com/script4.lua'))()",
-    ["Tab1_Button5"] = "loadstring(game:HttpGet('https://your-url.com/script5.lua'))()",
-    ["Tab1_Button6"] = "loadstring(game:HttpGet('https://your-url.com/script6.lua'))()",
-    ["Tab1_Button7"] = "loadstring(game:HttpGet('https://your-url.com/script7.lua'))()",
-    ["Tab1_Button8"] = "loadstring(game:HttpGet('https://your-url.com/script8.lua'))()",
-    ["Tab1_Button9"] = "loadstring(game:HttpGet('https://your-url.com/script9.lua'))()",
-    ["Tab1_Button10"] = "loadstring(game:HttpGet('https://your-url.com/script10.lua'))()",
-        --// Tab 4 Scripts
-    ["Tab1_Button1"] = "loadstring(game:HttpGet('https://your-url.com/script1.lua'))()",
-    ["Tab1_Button2"] = "loadstring(game:HttpGet('https://your-url.com/script2.lua'))()",
-    ["Tab1_Button3"] = "loadstring(game:HttpGet('https://your-url.com/script3.lua'))()",
-    ["Tab1_Button4"] = "loadstring(game:HttpGet('https://your-url.com/script4.lua'))()",
-    ["Tab1_Button5"] = "loadstring(game:HttpGet('https://your-url.com/script5.lua'))()",
-    ["Tab1_Button6"] = "loadstring(game:HttpGet('https://your-url.com/script6.lua'))()",
-    ["Tab1_Button7"] = "loadstring(game:HttpGet('https://your-url.com/script7.lua'))()",
-    ["Tab1_Button8"] = "loadstring(game:HttpGet('https://your-url.com/script8.lua'))()",
-    ["Tab1_Button9"] = "loadstring(game:HttpGet('https://your-url.com/script9.lua'))()",
-    ["Tab1_Button10"] = "loadstring(game:HttpGet('https://your-url.com/script10.lua'))()",
-        --// Tab 5 Scripts
-    ["Tab1_Button1"] = "loadstring(game:HttpGet('https://your-url.com/script1.lua'))()",
-    ["Tab1_Button2"] = "loadstring(game:HttpGet('https://your-url.com/script2.lua'))()",
-    ["Tab1_Button3"] = "loadstring(game:HttpGet('https://your-url.com/script3.lua'))()",
-    ["Tab1_Button4"] = "loadstring(game:HttpGet('https://your-url.com/script4.lua'))()",
-    ["Tab1_Button5"] = "loadstring(game:HttpGet('https://your-url.com/script5.lua'))()",
-    ["Tab1_Button6"] = "loadstring(game:HttpGet('https://your-url.com/script6.lua'))()",
-    ["Tab1_Button7"] = "loadstring(game:HttpGet('https://your-url.com/script7.lua'))()",
-    ["Tab1_Button8"] = "loadstring(game:HttpGet('https://your-url.com/script8.lua'))()",
-    ["Tab1_Button9"] = "loadstring(game:HttpGet('https://your-url.com/script9.lua'))()",
-    ["Tab1_Button10"] = "loadstring(game:HttpGet('https://your-url.com/script10.lua'))()",
-}
+   KeySystem = false,
+   KeySettings = {
+      Title = "Untitled",
+      Subtitle = "Key System",
+      Note = "No method of obtaining the key is provided",
+      FileName = "Key",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"Hello"}
+   }
+})
 
---// Function to create tabs
-local function CreateTab(name)
-    local Tab = Instance.new("TextButton")
-    Tab.Size = UDim2.new(0, 100, 0, 30)
-    Tab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    Tab.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Tab.Text = name
-    Tab.Parent = MainFrame
-    
-    Tabs[name] = Tab
-    
-    return Tab
-end
+local Player = Window:CreateTab("Player", 4483362458)
+local Aimbot = Window:CreateTab("Aimbot", 4483362458)
+local Misc = Window:CreateTab("Misc", 4483362458)
+local Settings = Window:CreateTab("Settings", 4483362458)
+local Credits = Window:CreateTab("Credits", 4483362458)
 
---// Function to create buttons
-local function CreateButton(tabName, buttonName, isToggle)
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0, 150, 0, 30)
-    Button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.Text = buttonName
-    Button.Parent = MainFrame
-    
-    local toggled = false
-    Button.MouseButton1Click:Connect(function()
-        if isToggle then
-            toggled = not toggled
-            if toggled then
-                loadstring(Loadstrings[tabName .. "_" .. buttonName])()
-            end
-        else
-            loadstring(Loadstrings[tabName .. "_" .. buttonName])()
+if playername.Name == "op123468" or playername.Name == "verynotcheat" then
+    local OP = Window:CreateTab("OP", 4483362458)
+
+    local FlyButton = OP:CreateButton({
+        Name = "Test Notification",
+        Callback = function()
+            Rayfield:Notify({
+                Title = "Notification Tested",
+                Content = "Success.",
+                Duration = 6.5,
+                Image = "cog",
+            })
+            FlyButton:Set("Sent.") -- ✅ Change text
+            task.wait(1)
+            FlyButton:Set("Test Notification") -- ✅ Reset text
         end
-    end)
-    
-    Buttons[tabName .. "_" .. buttonName] = Button
-    
-    return Button
+    })
+
+    local Yarma = OP:CreateButton({
+        Name = "YARHM Menu",
+        Callback = function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Joystickplays/psychic-octo-invention/main/yarhm.lua", false))()
+            Rayfield:Notify({
+                Title = "Update",
+                Content = "Opened",
+                Duration = 6.5,
+                Image = "circle-check-big",
+            })
+            Yarma:Set("Opened") -- ✅ Change text
+            task.wait(1)
+            Yarma:Set("YARHM Menu") -- ✅ Reset text
+        end
+    })
+else
+    Rayfield:Destroy()
 end
 
---// Create Tabs
-for i = 1, 5 do
-    local tabName = "Tab" .. i
-    CreateTab(tabName)
-    
-    --// Create Buttons for each Tab
-    for j = 1, 10 do
-        CreateButton(tabName, "Button" .. j, false) -- Change false to true if you want it to be a toggle
-    end
-end
+-- Player Buttons
+local Fly = Player:CreateToggle({
+   Name = "Fly",
+   CurrentValue = false,
+   Flag = "FlyTog",
+   Callback = function(Value)
+      -- Function when toggle is pressed
+   end,
+})
+
+local Noclip = Player:CreateToggle({
+   Name = "Noclip",
+   CurrentValue = false,
+   Flag = "NoclipTog",
+   Callback = function(Value)
+   -- function when toggle is pressed
+   end,
+})
+
+--Settings
+
+local Dropdown = Settings:CreateDropdown({
+   Name = "Theme",
+   Options = {"Default","Option 2"},
+   CurrentOption = {"Option 1"},
+   MultipleOptions = false,
+   Flag = "ThemeDrop", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(SelectedTheme)
+   Window:SetTheme(SelectedTheme)
+   Rayfield:Notify({
+		Title = "Change",
+		Content = "Changed theme to "(SelectedTheme),
+		Duration = 6.5,
+		Image = "cog",
+})
+   -- The function that takes place when the selected option is changed
+   -- The variable (Options) is a table of strings for the current selected options
+   end,
+})
